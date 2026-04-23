@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CPU-only PyTorch first
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
     torch==2.4.1 torchvision==0.19.1
@@ -21,4 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$$PORT"
+# Run migrations then Gunicorn with full paths
+CMD ["/usr/local/bin/python", "manage.py", "migrate", "&&", "/usr/local/bin/gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:$PORT"]
