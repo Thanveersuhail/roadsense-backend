@@ -5,22 +5,32 @@ from pathlib import Path
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_datetime
-from django.shortcuts import render
 from PIL import Image
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
-from rest_framework import serializers
 from ultralytics import YOLO
 
 from .models import Device, Event
-from .serializers import DeviceSerializer, EventSerializer
+from .serializers import EventSerializer
+from django.http import JsonResponse
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
-# Load model once at startup
 MODEL_PATH = os.path.join(settings.BASE_DIR, "best.pt")
-model = YOLO(MODEL_PATH)
+model = None
 
+
+def get_model():
+    global model
+    if model is None:
+        model = YOLO(MODEL_PATH)
+    return model
+
+
+def ensure_dir(path):
+    Path(path).mkdir(parents=True, exist_ok=True)
 
 def ensure_dir(path):
     Path(path).mkdir(parents=True, exist_ok=True)
@@ -57,7 +67,7 @@ def detect_event(request):
             for chunk in image_file.chunks():
                 destination.write(chunk)
 
-        results = model(frame_full_path, conf=0.25)
+        results = get_model()(frame_full_path, conf=0.25)
         result = results[0]
 
         if len(result.boxes) == 0:
