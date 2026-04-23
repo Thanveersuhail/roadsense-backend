@@ -20,5 +20,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Run migrations then Gunicorn with full paths
-CMD ["/usr/local/bin/python", "manage.py", "migrate", "&&", "/usr/local/bin/gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+CMD sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$$PORT"
