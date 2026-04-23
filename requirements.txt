@@ -7,5 +7,6 @@ psycopg2-binary==2.9.12
 requests==2.33.1
 opencv-python-headless==4.13.0.92
 ultralytics==8.4.39
+--index-url https://download.pytorch.org/whl/cpu
 torch==2.4.1
 torchvision==0.19.1
