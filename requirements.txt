@@ -5,7 +5,7 @@ gunicorn==25.3.0
 pillow==12.2.0
 psycopg2-binary==2.9.12
 requests==2.33.1
-ultralytics==8.4.39
 opencv-python-headless==4.13.0.92
-torch
-torchvision
+ultralytics==8.4.39
+torch==2.4.1
+torchvision==0.19.1
