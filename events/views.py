@@ -15,8 +15,10 @@ from .models import Device, Event
 from .serializers import EventSerializer
 from django.http import JsonResponse
 
+
+@api_view(["GET"])
 def health_check(request):
-    return JsonResponse({"status": "ok"})
+    return JsonResponse({"status": "healthy"})
 
 MODEL_PATH = os.path.join(settings.BASE_DIR, "best.pt")
 model = None
