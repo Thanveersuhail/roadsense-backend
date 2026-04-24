@@ -1,3 +1,4 @@
+# CORRECT — remove duplicate, also add whitenoise for static files
 Django==6.0.4
 django-cors-headers==4.9.0
 djangorestframework==3.17.1
@@ -8,3 +9,5 @@ requests==2.33.1
 opencv-python-headless==4.13.0.92
 ultralytics==8.4.39
 dj-database-url==3.1.0
+supabase==2.10.0
+whitenoise==6.9.0
