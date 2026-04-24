@@ -4,8 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
-ARG CACHE_BUST=1
-RUN echo "Cache bust: $CACHE_BUST"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -19,7 +18,8 @@ RUN pip install --upgrade pip && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# ✅ CACHE BUSTER — forces Docker to always copy fresh code
+ARG CACHEBUST=1
 COPY . .
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; u, created = User.objects.get_or_create(username='admin'); u.set_password('roadsense123'); u.is_superuser=True; u.is_staff=True; u.save(); print('Admin password set!')\" && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
-# cache bust Fri Apr 24 09:49:58 PM IST 2026
+CMD ["sh", "-c", "python manage.py migrate && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
