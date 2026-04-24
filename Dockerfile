@@ -18,8 +18,9 @@ RUN pip install --upgrade pip && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ CACHE BUSTER — forces Docker to always copy fresh code
 ARG CACHEBUST=1
 COPY . .
 
-CMD ["sh", "-c", "python manage.py migrate && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
+EXPOSE 10000
+
+CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 120 --workers 1"]
