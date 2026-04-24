@@ -10,7 +10,8 @@ from django.http import JsonResponse
 
 from .models import Device, Event
 from .serializers import EventSerializer
-from .utils import upload_image, get_model
+from .utils import get_model
+from utils.supabase_storage import upload_image
 
 @api_view(["GET"])
 def health_check(request):
