@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin','admin@roadsense.com','roadsense123')\" && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; u, created = User.objects.get_or_create(username='admin'); u.set_password('roadsense123'); u.is_superuser=True; u.is_staff=True; u.save(); print('Admin password set!')\" && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
