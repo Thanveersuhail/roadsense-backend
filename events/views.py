@@ -13,9 +13,11 @@ from .serializers import EventSerializer
 from .utils import get_model
 from utils.supabase_storage import upload_image
 
+
 @api_view(["GET"])
 def health_check(request):
     return JsonResponse({"status": "healthy"})
+
 
 @api_view(["POST"])
 def detect_event(request):
@@ -84,6 +86,7 @@ def detect_event(request):
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
 
 class EventDetailView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
