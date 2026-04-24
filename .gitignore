@@ -14,3 +14,7 @@ datasets/
 *.log
 best.pt
 best.onnx
+best.pt
+.venv/
+db.sqlite3
+media/
