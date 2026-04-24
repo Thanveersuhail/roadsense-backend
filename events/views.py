@@ -1,28 +1,17 @@
 import os
-from ultralytics import YOLO
-from datetime import datetime
-from pathlib import Path
 import uuid
 import tempfile
-from utils.supabase_storage import upload_image
-from django.conf import settings
-from django.core.files.storage import default_storage
+from datetime import datetime
 from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
+from django.http import JsonResponse
 
 from .models import Device, Event
 from .serializers import EventSerializer
-from django.http import JsonResponse
+from .utils import upload_image, get_model
 
-_MODEL = None
-
-def get_model():
-    global _MODEL
-    if _MODEL is None:
-        _MODEL = YOLO(os.path.join(settings.BASE_DIR, "best.pt"))
-    return _MODEL
 @api_view(["GET"])
 def health_check(request):
     return JsonResponse({"status": "healthy"})
@@ -45,14 +34,11 @@ def detect_event(request):
             detected_at = datetime.utcnow()
 
         device, _ = Device.objects.get_or_create(name=device_name)
-
         image_bytes = image_file.read()
 
-        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = str(uuid.uuid4())[:8]
         supabase_path = f"frames/{timestamp}_{unique_id}.jpg"
-
         public_url = upload_image(image_bytes, supabase_path)
 
         event = Event.objects.create(
@@ -71,7 +57,6 @@ def detect_event(request):
 
         model = get_model()
         results = model(temp_path, conf=0.25)
-
         os.unlink(temp_path)
 
         if results and len(results) > 0 and results[0].boxes:
@@ -98,7 +83,6 @@ def detect_event(request):
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-
 
 class EventDetailView(generics.RetrieveAPIView):
     queryset = Event.objects.all()
