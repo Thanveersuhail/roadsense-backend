@@ -21,3 +21,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 CMD ["sh", "-c", "python manage.py migrate && python manage.py shell -c \"from django.contrib.auth.models import User; u, created = User.objects.get_or_create(username='admin'); u.set_password('roadsense123'); u.is_superuser=True; u.is_staff=True; u.save(); print('Admin password set!')\" && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
+# cache bust Fri Apr 24 09:49:58 PM IST 2026
