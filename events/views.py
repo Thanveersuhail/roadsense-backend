@@ -80,7 +80,7 @@ def detect_event(request):
             valid_types = dict(Event.EVENT_TYPES).keys()
             event.event_type = label if label in valid_types else "pothole"
         else:
-            event.event_type = "other_surface_damage"
+            event.event_type = "other_surface_damage/Nil"
             event.confidence = 0.0
 
         event.status = "done"
