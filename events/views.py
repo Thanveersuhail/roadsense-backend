@@ -63,15 +63,18 @@ def detect_event(request):
         os.unlink(temp_path)
 
         if results and len(results) > 0 and results[0].boxes:
-            box = results[0].boxes[0]
-            cls_id = int(box.cls[0].item())
-            event.confidence = float(box.conf[0].item())
-            label = results[0].names.get(cls_id, "pothole")
-            valid_types = dict(Event.EVENT_TYPES).keys()
-            event.event_type = label if label in valid_types else "pothole"
+    box = results[0].boxes[0]
+    cls_id = int(box.cls[0].item())
+    event.confidence = float(box.conf[0].item())
+    label = results[0].names.get(cls_id, "pothole")
+    valid_types = dict(Event.EVENT_TYPES).keys()
+    event.event_type = label if label in valid_types else "pothole"
+else:
+    event.event_type = "other_surface_damage"  # ✅ clean fallback
+    event.confidence = 0.0
 
-        event.status = "done"
-        event.save(update_fields=["event_type", "confidence", "status"])
+event.status = "done"
+event.save(update_fields=["event_type", "confidence", "status"])
 
         return Response({
             "status": "done",
