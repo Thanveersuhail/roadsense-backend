@@ -13,10 +13,12 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'device', 'device_name', 'event_type', 'severity',
-            'confidence', 'latitude', 'longitude', 'speed_kmph',
-            'detected_at', 'image_crop_path', 'full_frame_path', 'created_at'
-        ]
+    'id', 'device', 'device_name', 'event_type', 'severity',
+    'confidence', 'latitude', 'longitude', 'speed_kmph',
+    'detected_at', 'image_crop_path', 'full_frame_path',
+    'status',        # ✅ ADD THIS
+    'created_at'
+]
         read_only_fields = ['created_at', 'device']
 
     def create(self, validated_data):
