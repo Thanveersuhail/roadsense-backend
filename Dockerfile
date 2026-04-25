@@ -25,4 +25,8 @@ RUN mkdir -p staticfiles && python manage.py collectstatic --noinput
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 120 --workers 1"]
+# Pre-download YOLO model at container start, then run migrations + gunicorn
+CMD ["sh", "-c", \
+    "python -c 'from events.utils import download_model; download_model()' && \
+     python manage.py migrate && \
+     gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 300 --workers 1"]
