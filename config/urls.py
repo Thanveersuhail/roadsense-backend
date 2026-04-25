@@ -1,8 +1,12 @@
-# main project urls.py
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def root_health(request):
+    return JsonResponse({"status": "healthy"})
 
 urlpatterns = [
+    path('', root_health),
     path('admin/', admin.site.urls),
     path('api/events/', include('events.urls')),
 ]
