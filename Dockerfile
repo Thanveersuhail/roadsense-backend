@@ -28,4 +28,4 @@ EXPOSE 10000
 # Pre-download YOLO model at container start, then run migrations + gunicorn
 CMD ["sh", "-c", \
     "python manage.py migrate && \
-     gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 300 --workers 1"]
+     gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 120 --workers 1 --preload"]
