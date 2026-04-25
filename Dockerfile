@@ -25,4 +25,4 @@ RUN mkdir -p staticfiles && python manage.py collectstatic --noinput
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "python manage.py migrate && python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 1"]
+CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 300 --workers 1"]
