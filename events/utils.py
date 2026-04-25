@@ -22,8 +22,18 @@ def download_model():
 
 def get_model():
     global _model
-    if _model is None:
-        download_model()
-        _model = YOLO(MODEL_PATH)
-        print("[RoadSense] YOLO model loaded ✅")
+    if _model is not None:
+        return _model
+    
+    if not os.path.exists(MODEL_PATH):
+        url = os.environ.get("YOLO_MODEL_URL")
+        print(f"[RoadSense] Downloading model from {url}...")
+        r = requests.get(url, timeout=120)
+        r.raise_for_status()
+        with open(MODEL_PATH, "wb") as f:
+            f.write(r.content)
+        print("[RoadSense] Model downloaded ✅")
+    
+    _model = YOLO(MODEL_PATH)
+    print("[RoadSense] Model loaded into memory ✅")
     return _model
