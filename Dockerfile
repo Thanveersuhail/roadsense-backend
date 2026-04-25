@@ -21,6 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 ARG CACHEBUST=1
 COPY . .
 
+RUN mkdir -p staticfiles && python manage.py collectstatic --noinput
+
 EXPOSE 10000
 
 CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --timeout 120 --workers 1"]
