@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 
 class Device(models.Model):
@@ -19,7 +18,6 @@ class Event(models.Model):
         ('patch_repair_area', 'Patch/Repair Area'),
         ('other_surface_damage', 'Other Surface Damage'),
         ('manhole_road_utility_cover', 'Manhole/Road Utility Cover'),
-        ('pending', 'Pending'),
     ]
 
     STATUS_CHOICES = [
