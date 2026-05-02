@@ -122,6 +122,10 @@ else:
         ).split(",")
         if origin.strip()
     ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://roadsense-frontend-v2.onrender.com",
+]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
