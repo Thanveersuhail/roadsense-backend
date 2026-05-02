@@ -12,13 +12,19 @@ if SUPABASE_URL and SUPABASE_KEY:
 
 def upload_image(file_bytes, destination_path):
     try:
+        if supabase is None:
+            raise RuntimeError("Supabase client is not configured")
+
         bucket = supabase.storage.from_(SUPABASE_BUCKET)
         bucket.upload(
             path=destination_path,
             file=file_bytes,
-            file_options={"content-type": "image/jpeg"}
+            file_options={
+                "content-type": "image/jpeg"
+            }
         )
         return bucket.get_public_url(destination_path)
+
     except Exception as e:
         raise RuntimeError(f"Supabase upload failed for {destination_path}: {e}")
 
