@@ -1,6 +1,7 @@
 import os
 import uuid
 import tempfile
+import traceback
 from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -38,6 +39,7 @@ def health_check(request):
 
 @api_view(["POST"])
 def detect_event(request):
+    event = None
     try:
         image_file = request.FILES.get("image")
         if not image_file:
@@ -147,6 +149,8 @@ def detect_event(request):
         )
 
     except Exception as e:
+        print("DETECT_EVENT_ERROR:", repr(e))
+        traceback.print_exc()
         if event is not None:
             event.status = "failed"
             event.save(update_fields=["status"])
@@ -154,7 +158,6 @@ def detect_event(request):
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all()
