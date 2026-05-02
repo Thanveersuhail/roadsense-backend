@@ -10,7 +10,6 @@ supabase: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-from io import BytesIO
 
 def upload_image(file_bytes, destination_path):
     try:
@@ -18,13 +17,20 @@ def upload_image(file_bytes, destination_path):
             raise RuntimeError("Supabase client is not configured")
 
         bucket = supabase.storage.from_(SUPABASE_BUCKET)
+
         file_obj = BytesIO(file_bytes)
         bucket.upload(
             path=destination_path,
             file=file_obj,
-            file_options={"content-type": "image/jpeg"}
+            file_options={
+                "content-type": "image/jpeg",
+                "cache-control": "3600",
+                "upsert": "false"
+            }
         )
+
         return bucket.get_public_url(destination_path)
+
     except Exception as e:
         raise RuntimeError(f"Supabase upload failed for {destination_path}: {e}")
 
