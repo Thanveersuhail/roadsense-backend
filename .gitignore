@@ -6,15 +6,13 @@ __pycache__/
 *.pyo
 *.pyd
 .git/
+.env
 media/
 runs/
 test_images/
 datasets/
 *.sqlite3
+db.sqlite3
 *.log
 best.pt
 best.onnx
-best.pt
-.venv/
-db.sqlite3
-media/
