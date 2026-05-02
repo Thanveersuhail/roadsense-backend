@@ -11,16 +11,18 @@ if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def upload_image(file_bytes: bytes, destination_path: str, content_type: str = "image/jpeg") -> str:
-    """Upload image bytes to Supabase Storage. Returns public URL."""
     if supabase is None:
         raise ValueError("Supabase credentials are not configured")
 
-    supabase.storage.from_(SUPABASE_BUCKET).upload(
-        path=destination_path,
-        file=file_bytes,
-        file_options={"content-type": content_type, "upsert": "true"}
-    )
-    return supabase.storage.from_(SUPABASE_BUCKET).get_public_url(destination_path)
+    try:
+        supabase.storage.from_(SUPABASE_BUCKET).upload(
+            path=destination_path,
+            file=file_bytes,
+            file_options={"content-type": content_type, "upsert": True}
+        )
+        return supabase.storage.from_(SUPABASE_BUCKET).get_public_url(destination_path)
+    except Exception as e:
+        raise RuntimeError(f"Supabase upload failed for {destination_path}: {e}")
 
 def delete_image(destination_path: str):
     """Delete a single image from Supabase Storage."""
