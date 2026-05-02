@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+import tempfile
 from supabase import create_client, Client
 from typing import Optional
 
