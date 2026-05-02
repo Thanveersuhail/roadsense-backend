@@ -114,10 +114,14 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS = os.environ.get(
-        "CORS_ALLOWED_ORIGINS",
-        "http://127.0.0.1:5500,http://localhost:5500"
-    ).split(",")
+    CORS_ALLOWED_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ALLOWED_ORIGINS",
+            "http://127.0.0.1:5500,http://localhost:5500,https://roadsense-frontend-v2.onrender.com"
+        ).split(",")
+        if origin.strip()
+    ]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
