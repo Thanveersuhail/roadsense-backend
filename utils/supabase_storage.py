@@ -17,20 +17,25 @@ def upload_image(file_bytes, destination_path):
         if supabase is None:
             raise RuntimeError("Supabase client is not configured")
 
-        bucket = supabase.storage.from_(SUPABASE_BUCKET)
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+            tmp.write(file_bytes)
+            tmp_path = tmp.name
 
-        file_obj = BytesIO(file_bytes)
-        bucket.upload(
-            path=destination_path,
-            file=file_obj,
-            file_options={
-                "content-type": "image/jpeg",
-                "cache-control": "3600",
-                "upsert": "false"
-            }
-        )
-
-        return bucket.get_public_url(destination_path)
+        try:
+            with open(tmp_path, "rb") as f:
+                bucket = supabase.storage.from_(SUPABASE_BUCKET)
+                bucket.upload(
+                    path=destination_path,
+                    file=f,
+                    file_options={
+                        "cache-control": "3600",
+                        "upsert": "false",
+                    }
+                )
+            return bucket.get_public_url(destination_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
     except Exception as e:
         raise RuntimeError(f"Supabase upload failed for {destination_path}: {e}")
