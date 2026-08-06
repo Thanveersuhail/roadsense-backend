@@ -16,7 +16,14 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY") or os.environ.get("SECRET_KEY",
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "ALLOWED_HOSTS",
+        "127.0.0.1,localhost"
+    ).split(",")
+    if host.strip()
+]
 
 # Application definition
 
@@ -65,11 +72,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
+        ssl_require=not DEBUG,
     )
 }
 
@@ -118,13 +125,18 @@ else:
         origin.strip()
         for origin in os.environ.get(
             "CORS_ALLOWED_ORIGINS",
-            "http://127.0.0.1:5500,http://localhost:5500,https://roadsense-frontend-v2.onrender.com"
+            "https://roadsense-frontend-v2.onrender.com"
         ).split(",")
         if origin.strip()
     ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://roadsense-frontend-v2.onrender.com",
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://roadsense-frontend-v2.onrender.com"
+    ).split(",")
+    if origin.strip()
 ]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
