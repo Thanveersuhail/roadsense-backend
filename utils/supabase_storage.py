@@ -43,16 +43,20 @@ def get_supabase_client() -> Client:
         raise RuntimeError(f"Supabase client initialization failed: {e}") from e
 
 
-def upload_image(file_bytes: bytes, destination_path: str) -> str:
+def upload_image(file_bytes, destination_path: str) -> str:
     try:
         supabase = get_supabase_client()
         bucket = supabase.storage.from_(SUPABASE_BUCKET)
 
-        file_stream = BytesIO(file_bytes)
+        if hasattr(file_bytes, "read"):
+            file_bytes = file_bytes.read()
+
+        if not isinstance(file_bytes, bytes):
+            file_bytes = bytes(file_bytes)
 
         bucket.upload(
             path=destination_path,
-            file=file_stream,
+            file=file_bytes,
             file_options={
                 "content-type": "image/jpeg",
                 "cache-control": "3600",
@@ -66,7 +70,6 @@ def upload_image(file_bytes: bytes, destination_path: str) -> str:
         raise RuntimeError(
             f"Supabase upload failed for {destination_path}: {e}"
         ) from e
-
 
 def delete_image(destination_path: str) -> None:
     supabase = get_supabase_client()
