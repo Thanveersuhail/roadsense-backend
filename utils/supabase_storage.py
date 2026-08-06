@@ -78,9 +78,9 @@ def upload_image(file_bytes, destination_path: str) -> str:
             )
 
         return (
-            f"{SUPABASE_URL}/storage/v1/object/public/"
-            f"{SUPABASE_BUCKET}/{encoded_path}"
-        )
+    f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/"
+    f"{SUPABASE_BUCKET}/{encoded_path}"
+)
 
     except Exception as e:
         raise RuntimeError(
