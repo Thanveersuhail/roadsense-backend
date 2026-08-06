@@ -1,5 +1,6 @@
 import os
-from io import BytesIO
+import requests
+from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 
@@ -45,26 +46,41 @@ def get_supabase_client() -> Client:
 
 def upload_image(file_bytes, destination_path: str) -> str:
     try:
-        supabase = get_supabase_client()
-        bucket = supabase.storage.from_(SUPABASE_BUCKET)
-
         if hasattr(file_bytes, "read"):
             file_bytes = file_bytes.read()
 
         if not isinstance(file_bytes, bytes):
             file_bytes = bytes(file_bytes)
 
-        bucket.upload(
-            path=destination_path,
-            file=file_bytes,
-            file_options={
-                "content-type": "image/jpeg",
-                "cache-control": "3600",
-                "upsert": "false",
-            },
+        encoded_path = quote(destination_path, safe="/")
+
+        upload_url = (
+            f"{SUPABASE_URL}/storage/v1/object/"
+            f"{SUPABASE_BUCKET}/{encoded_path}"
         )
 
-        return bucket.get_public_url(destination_path)
+        response = requests.post(
+            upload_url,
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Authorization": f"Bearer {SUPABASE_KEY}",
+                "Content-Type": "image/jpeg",
+                "x-upsert": "false",
+            },
+            data=file_bytes,
+            timeout=60,
+        )
+
+        if response.status_code not in (200, 201):
+            raise RuntimeError(
+                f"Supabase returned HTTP {response.status_code}: "
+                f"{response.text[:1000]}"
+            )
+
+        return (
+            f"{SUPABASE_URL}/storage/v1/object/public/"
+            f"{SUPABASE_BUCKET}/{encoded_path}"
+        )
 
     except Exception as e:
         raise RuntimeError(
