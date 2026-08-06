@@ -122,13 +122,13 @@ if DEBUG:
 else:
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [
-        origin.strip()
-        for origin in os.environ.get(
-            "CORS_ALLOWED_ORIGINS",
-            "https://roadsense-frontend-v2.onrender.com"
-        ).split(",")
-        if origin.strip()
-    ]
+    origin.strip()
+    for origin in os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "https://roadsense-frontend-v2.onrender.com"
+    ).split(",")
+    if origin.strip()
+]
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
