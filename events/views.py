@@ -1,7 +1,7 @@
 import logging
 import os
 import tempfile
-import traceback
+import time
 import uuid
 
 import cv2
@@ -53,9 +53,21 @@ def detect_event(request):
     event = None
     stage = "start"
     request_id = uuid.uuid4().hex[:8]
+    started_at = time.monotonic()
+
+    def set_stage(name):
+        nonlocal stage
+        stage = name
+
+        logger.info(
+            "[RoadSense] request_id=%s stage=%s elapsed=%.2fs",
+            request_id,
+            stage,
+            time.monotonic() - started_at,
+        )
 
     try:
-        stage = "reading_uploaded_image"
+        set_stage("reading_uploaded_image")
 
         image_file = request.FILES.get("image")
 
@@ -79,7 +91,7 @@ def detect_event(request):
         speed_kmph = request.data.get("speed_kmph")
         detected_at_raw = request.data.get("detected_at")
 
-        stage = "parsing_timestamp"
+        set_stage("parsing_timestamp")
 
         detected_at = (
             parse_datetime(detected_at_raw)
@@ -95,13 +107,13 @@ def detect_event(request):
                 django_timezone.get_current_timezone(),
             )
 
-        stage = "creating_or_getting_device"
+        set_stage("creating_or_getting_device")
 
         device, _ = Device.objects.get_or_create(
             name=device_name
         )
 
-        stage = "reading_image_bytes"
+        set_stage("reading_image_bytes")
 
         image_bytes = image_file.read()
 
@@ -113,7 +125,7 @@ def detect_event(request):
         )
         unique_id = uuid.uuid4().hex[:8]
 
-        stage = "uploading_original_image"
+        set_stage("uploading_original_image")
 
         original_supabase_path = (
             f"frames/{timestamp}_{unique_id}.jpg"
@@ -124,7 +136,7 @@ def detect_event(request):
             original_supabase_path,
         )
 
-        stage = "creating_pending_database_event"
+        set_stage("creating_pending_database_event")
 
         event = Event.objects.create(
             device=device,
@@ -148,7 +160,7 @@ def detect_event(request):
             full_frame_path=public_url,
         )
 
-        stage = "creating_temporary_image_file"
+        set_stage("creating_temporary_image_file")
 
         temp_path = None
 
@@ -160,15 +172,16 @@ def detect_event(request):
                 temp_file.write(image_bytes)
                 temp_path = temp_file.name
 
-            stage = "loading_yolo_model"
+            set_stage("loading_yolo_model")
 
             model = get_model()
 
-            stage = "running_yolo_inference"
+            set_stage("running_yolo_inference")
 
             results = model(
                 temp_path,
                 conf=0.15,
+                verbose=False,
             )
 
         finally:
@@ -185,7 +198,7 @@ def detect_event(request):
         )
 
         if has_detection:
-            stage = "reading_detection_result"
+            set_stage("reading_detection_result")
 
             box = results[0].boxes[0]
 
@@ -204,12 +217,13 @@ def detect_event(request):
             event.confidence = confidence
             event.severity = confidence
 
-            stage = "decoding_image_for_annotation"
+            set_stage("decoding_image_for_annotation")
 
             nparr = np.frombuffer(
                 image_bytes,
                 np.uint8,
             )
+
             image = cv2.imdecode(
                 nparr,
                 cv2.IMREAD_COLOR,
@@ -228,7 +242,7 @@ def detect_event(request):
                     f"{event.confidence:.2f}"
                 )
 
-                stage = "drawing_detection_box"
+                set_stage("drawing_detection_box")
 
                 cv2.rectangle(
                     image,
@@ -277,7 +291,7 @@ def detect_event(request):
                     thickness,
                 )
 
-                stage = "encoding_annotated_image"
+                set_stage("encoding_annotated_image")
 
                 success, buffer = cv2.imencode(
                     ".jpg",
@@ -295,8 +309,10 @@ def detect_event(request):
 
                 annotated_bytes = buffer.tobytes()
 
-                stage = "uploading_annotated_image"
+                set_stage("uploading_annotated_image")
 
+                # Keep annotated files inside frames/
+                # so the existing Supabase RLS policy covers them.
                 annotated_supabase_path = (
                     "frames/annotated/"
                     f"{timestamp}_{unique_id}_bbox.jpg"
@@ -308,13 +324,13 @@ def detect_event(request):
                 )
 
         else:
-            stage = "setting_no_detection_values"
+            set_stage("setting_no_detection_values")
 
             event.event_type = "other_surface_damage"
             event.confidence = 0.0
             event.severity = 0.0
 
-        stage = "saving_completed_event"
+        set_stage("saving_completed_event")
 
         event.status = "done"
 
@@ -331,17 +347,21 @@ def detect_event(request):
             ]
         )
 
+        elapsed = time.monotonic() - started_at
+
         logger.info(
             "[RoadSense] Detection completed "
-            "request_id=%s event_id=%s",
+            "request_id=%s event_id=%s elapsed=%.2fs",
             request_id,
             event.id,
+            elapsed,
         )
 
         return Response(
             {
                 "status": "done",
                 "request_id": request_id,
+                "elapsed_seconds": round(elapsed, 2),
                 "event": EventSerializer(event).data,
                 "message": (
                     "Detection completed and image uploaded "
@@ -352,27 +372,35 @@ def detect_event(request):
         )
 
     except Exception as error:
-        logger.error(
+        elapsed = time.monotonic() - started_at
+
+        logger.exception(
             "[RoadSense] Detection failed "
-            "request_id=%s stage=%s error=%s",
+            "request_id=%s stage=%s elapsed=%.2fs error=%s",
             request_id,
             stage,
+            elapsed,
             error,
         )
-        traceback.print_exc()
 
         if event is not None:
             try:
                 event.status = "failed"
                 event.save(update_fields=["status"])
             except Exception:
-                traceback.print_exc()
+                logger.exception(
+                    "[RoadSense] Could not mark event as failed "
+                    "request_id=%s event_id=%s",
+                    request_id,
+                    event.id,
+                )
 
         return Response(
             {
                 "error": str(error),
                 "stage": stage,
                 "request_id": request_id,
+                "elapsed_seconds": round(elapsed, 2),
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
