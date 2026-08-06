@@ -55,9 +55,9 @@ def upload_image(file_bytes, destination_path: str) -> str:
         encoded_path = quote(destination_path, safe="/")
 
         upload_url = (
-            f"{SUPABASE_URL}/storage/v1/object/"
-            f"{SUPABASE_BUCKET}/{encoded_path}"
-        )
+    f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/"
+    f"{SUPABASE_BUCKET}/{encoded_path}"
+)
 
         response = requests.post(
             upload_url,
