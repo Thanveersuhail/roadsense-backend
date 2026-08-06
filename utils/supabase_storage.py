@@ -65,7 +65,7 @@ def upload_image(file_bytes, destination_path: str) -> str:
                 "apikey": SUPABASE_KEY,
                 "Authorization": f"Bearer {SUPABASE_KEY}",
                 "Content-Type": "image/jpeg",
-                "x-upsert": "false",
+                "x-upsert": "true",
             },
             data=file_bytes,
             timeout=60,
