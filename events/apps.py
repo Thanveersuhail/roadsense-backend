@@ -6,9 +6,9 @@ class EventsConfig(AppConfig):
     name = 'events'
 
     def ready(self):
-        if os.environ.get("RUN_MAIN") == "true" or os.environ.get("RENDER"):
-            from .utils import download_model
-            try:
-                download_model()
-            except Exception as e:
-                print(f"[RoadSense] Model preload failed: {e}")
+    if os.environ.get("RUN_MAIN") == "true" or os.environ.get("RENDER"):
+        from .utils import download_model
+        try:
+            download_model()
+        except Exception as e:
+            print(f"[RoadSense] Model preload failed: {e}")
