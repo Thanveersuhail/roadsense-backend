@@ -126,7 +126,9 @@ def detect_event(request):
                 # Encode and upload
                 _, buffer = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 90])
                 annotated_bytes = buffer.tobytes()
-                crop_supabase_path = f"annotated/{timestamp}_{unique_id}_bbox.jpg"
+                crop_supabase_path = (
+    f"frames/annotated/{timestamp}_{unique_id}_bbox.jpg"
+)
                 crop_url = upload_image(annotated_bytes, crop_supabase_path)
 
         else:
